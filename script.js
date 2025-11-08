@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- STATE MANAGEMENT ---
     let assignments = [];
-    let subjects = {}; // To store subject colors { "math": "#ff0000" }
+    // NEW STRUCTURE: {"math": {name: "Math", color: "#ff0000"}}
+    let subjects = {}; 
+    let bannerColor = '#4a90e2'; // NEW for theme
     let currentView = 'list';
-    let calendarDate = new Date(); // Date for calendar views
+    let calendarDate = new Date(); 
 
     // --- DOM SELECTORS ---
     const appContainer = document.getElementById('app-container');
@@ -16,10 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const formModalTitle = document.getElementById('form-modal-title');
     const assignmentId = document.getElementById('assignment-id');
     const assignmentName = document.getElementById('assignment-name');
-    const assignmentSubject = document.getElementById('assignment-subject');
-    const subjectColor = document.getElementById('subject-color');
+    // This is now a <select> element
+    const assignmentSubject = document.getElementById('assignment-subject'); 
     const dueDate = document.getElementById('due-date');
-    const subjectDatalist = document.getElementById('subject-list');
+    // subjectColor and subjectDatalist are removed
 
     // Settings Modal
     const settingsBtn = document.getElementById('settings-btn');
@@ -29,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newSubjectName = document.getElementById('new-subject-name');
     const newSubjectColor = document.getElementById('new-subject-color');
     const subjectManagerList = document.getElementById('subject-manager-list');
+    const bannerColorInput = document.getElementById('banner-color'); // NEW
 
     // View Switcher Buttons
     const viewButtons = {
@@ -42,10 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveAllData() {
         localStorage.setItem('assignments', JSON.stringify(assignments));
         localStorage.setItem('subjects', JSON.stringify(subjects));
+        localStorage.setItem('bannerColor', bannerColor); // NEW
     }
 
     function loadAllData() {
-        // Add default properties for completion to any existing assignments
         const loadedAssignments = JSON.parse(localStorage.getItem('assignments')) || [];
         assignments = loadedAssignments.map(a => ({
             ...a,
@@ -54,13 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
         
         subjects = JSON.parse(localStorage.getItem('subjects')) || {};
-        updateSubjectDatalist();
+        bannerColor = localStorage.getItem('bannerColor') || '#4a90e2'; // NEW
+        
+        applyBannerColor(bannerColor); // NEW: Apply theme on load
     }
 
     // --- UTILITY FUNCTIONS ---
     function formatDate(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString + 'T00:00:00'); // Fix timezone issue
+        const date = new Date(dateString + 'T00:00:00'); 
         return date.toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
@@ -77,26 +82,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function sortAssignmentsByCompletion(data) {
-        return data.sort((a, b) => b.completionDate - a.completionDate); // Newest first
+        return data.sort((a, b) => b.completionDate - a.completionDate);
+    }
+
+    // --- NEW: THEME/COLOR FUNCTIONS ---
+    function applyBannerColor(hex) {
+        document.documentElement.style.setProperty('--primary-color', hex);
+        // Calculate and set a darker version for the nav
+        const darkColor = darkenColor(hex, 15);
+        document.documentElement.style.setProperty('--primary-dark', darkColor);
+    }
+
+    function handleBannerColorChange(e) {
+        const newColor = e.target.value;
+        bannerColor = newColor;
+        applyBannerColor(newColor);
+        saveAllData();
+    }
+
+    // Utility to calculate a darker shade
+    function darkenColor(hex, percent) {
+        let r = parseInt(hex.substr(1, 2), 16);
+        let g = parseInt(hex.substr(3, 2), 16);
+        let b = parseInt(hex.substr(5, 2), 16);
+
+        r = Math.floor(r * (100 - percent) / 100);
+        g = Math.floor(g * (100 - percent) / 100);
+        b = Math.floor(b * (100 - percent) / 100);
+
+        return `#${(r < 0 ? 0 : r).toString(16).padStart(2, '0')}${(g < 0 ? 0 : g).toString(16).padStart(2, '0')}${(b < 0 ? 0 : b).toString(16).padStart(2, '0')}`;
     }
 
     // --- FORM MODAL FUNCTIONS ---
+
+    // NEW: Populates the <select> dropdown
+    function updateSubjectDropdown() {
+        // Clear all but the first (disabled) option
+        while (assignmentSubject.options.length > 1) {
+            assignmentSubject.remove(1);
+        }
+        
+        Object.keys(subjects).sort().forEach(subjectKey => {
+            const subject = subjects[subjectKey];
+            const option = document.createElement('option');
+            option.value = subjectKey; // Use the lowercase key as the value
+            option.textContent = subject.name; // Use the display name as the text
+            assignmentSubject.appendChild(option);
+        });
+    }
+
     function openFormModal(assignment = null) {
         assignmentForm.reset();
+        updateSubjectDropdown(); // ALWAYS update dropdown with latest subjects
+
         if (assignment) {
             // Edit mode
             formModalTitle.textContent = 'Edit Assignment';
             assignmentId.value = assignment.id;
             assignmentName.value = assignment.name;
-            assignmentSubject.value = assignment.subject;
-            subjectColor.value = assignment.color;
+            assignmentSubject.value = assignment.subjectKey; // Set dropdown
             dueDate.value = assignment.date;
         } else {
             // Add mode
             formModalTitle.textContent = 'New Assignment';
             assignmentId.value = '';
-            // Auto-fill color if subject is known
-            handleSubjectInput();
+            // Form is already reset, dropdown is populated
         }
         formModal.classList.add('visible');
     }
@@ -109,23 +159,25 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const id = assignmentId.value ? parseInt(assignmentId.value) : Date.now();
-        const subjectName = assignmentSubject.value.trim();
-        const color = subjectColor.value;
+        const subjectKey = assignmentSubject.value; // Get key from dropdown
 
-        // Find existing assignment to preserve completion status
+        if (!subjectKey) { // Check if they selected a subject
+            alert('Please select a subject. You can add subjects in Settings.');
+            return;
+        }
+
         const existingAssignment = assignments.find(a => a.id === id);
 
+        // NEW: Assignment only stores the key
         const newAssignment = {
             id: id,
             name: assignmentName.value.trim(),
-            subject: subjectName,
-            color: color,
-            date: dueDate.value, // YYYY-MM-DD
+            subjectKey: subjectKey, // Store the key, not the name/color
+            date: dueDate.value, 
             isComplete: existingAssignment ? existingAssignment.isComplete : false,
             completionDate: existingAssignment ? existingAssignment.completionDate : null,
         };
 
-        // Update or add assignment
         const existingIndex = assignments.findIndex(a => a.id === id);
         if (existingIndex > -1) {
             assignments[existingIndex] = newAssignment;
@@ -133,37 +185,15 @@ document.addEventListener('DOMContentLoaded', () => {
             assignments.push(newAssignment);
         }
 
-        // Save subject and color (use lowercase for reliable key)
-        subjects[subjectName.toLowerCase()] = color;
-        
         saveAllData();
-        updateSubjectDatalist();
         renderCurrentView();
         closeFormModal();
-    }
-
-    function handleSubjectInput() {
-        // Auto-fill color if subject is known
-        const subjectName = assignmentSubject.value.trim().toLowerCase();
-        if (subjects[subjectName]) {
-            subjectColor.value = subjects[subjectName];
-        }
-    }
-
-    function updateSubjectDatalist() {
-        subjectDatalist.innerHTML = '';
-        Object.keys(subjects).forEach(subjectKey => {
-            // Capitalize first letter for display
-            const subjectName = subjectKey.charAt(0).toUpperCase() + subjectKey.slice(1);
-            const option = document.createElement('option');
-            option.value = subjectName;
-            subjectDatalist.appendChild(option);
-        });
     }
 
     // --- SETTINGS MODAL FUNCTIONS ---
     function openSettingsModal() {
         renderSettings();
+        bannerColorInput.value = bannerColor; // Set theme picker
         settingsModal.classList.add('visible');
     }
 
@@ -172,22 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSettings() {
-        subjectManagerList.innerHTML = ''; // Clear list
+        subjectManagerList.innerHTML = ''; 
         if (Object.keys(subjects).length === 0) {
             subjectManagerList.innerHTML = '<p>No subjects preloaded yet.</p>';
             return;
         }
 
+        // NEW: Loop and get data from new object structure
         Object.keys(subjects).sort().forEach(subjectKey => {
-            const color = subjects[subjectKey];
-            // Capitalize first letter for display
-            const subjectName = subjectKey.charAt(0).toUpperCase() + subjectKey.slice(1);
-            
+            const subjectData = subjects[subjectKey];
             const item = document.createElement('div');
             item.className = 'subject-list-item';
             item.innerHTML = `
-                <span class="subject-list-color" style="background-color: ${color};"></span>
-                <span class="subject-list-name">${subjectName}</span>
+                <span class="subject-list-color" style="background-color: ${subjectData.color};"></span>
+                <span class="subject-list-name">${subjectData.name}</span>
                 <button class="action-btn delete" data-subject-key="${subjectKey}" aria-label="Delete Subject">
                     <span class="material-icons-outlined">delete_outline</span>
                 </button>
@@ -200,24 +228,23 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const name = newSubjectName.value.trim();
         const color = newSubjectColor.value;
-        if (!name) return; // Don't add empty subject
+        if (!name) return;
 
-        subjects[name.toLowerCase()] = color; // Save with lowercase key
+        // NEW: Save as an object, using lowercase key
+        subjects[name.toLowerCase()] = { name: name, color: color };
         
         saveAllData();
         renderSettings(); // Re-render settings list
-        updateSubjectDatalist(); // Update form datalist
 
-        newSubjectName.value = ''; // Clear form
-        newSubjectColor.value = '#56a3e2'; // Reset color
+        newSubjectName.value = ''; 
+        newSubjectColor.value = '#56a3e2'; 
     }
 
     function deleteSubject(subjectKey) {
-        if (confirm(`Are you sure you want to delete this subject? This won't delete assignments, but will remove the preloaded color.`)) {
+        if (confirm(`Are you sure you want to delete "${subjects[subjectKey].name}"? This won't delete existing assignments, but they will show as "Unknown Subject" if not re-added.`)) {
             delete subjects[subjectKey];
             saveAllData();
             renderSettings();
-            updateSubjectDatalist();
         }
     }
 
@@ -226,7 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'assignment-card';
         card.dataset.id = assignment.id;
-        card.style.setProperty('--subject-color', assignment.color);
+        
+        // NEW: Look up subject data
+        const subjectData = subjects[assignment.subjectKey] || { name: 'Unknown Subject', color: '#aaaaaa' };
+        
+        card.style.setProperty('--subject-color', subjectData.color);
         if (assignment.isComplete) {
             card.classList.add('completed');
         }
@@ -235,8 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="checkbox" class="assignment-checkbox" ${assignment.isComplete ? 'checked' : ''} aria-label="Mark as complete">
             <div class="assignment-card-content">
                 <h3>${assignment.name}</h3>
-                <p>${assignment.subject}</p>
-            </div>
+                <p>${subjectData.name}</p> </div>
             <div class="assignment-due-date">
                 ${formatDate(assignment.date)}
             </div>
@@ -263,11 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleCardClick(e) {
         const card = e.target.closest('.assignment-card');
-        if (!card) return; // Click was not on a card
+        if (!card) return;
         
         const id = parseInt(card.dataset.id);
 
-        // Check for action buttons
         if (e.target.closest('.action-btn.edit')) {
             const assignmentToEdit = assignments.find(a => a.id === id);
             if (assignmentToEdit) openFormModal(assignmentToEdit);
@@ -283,14 +312,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Check for checkbox click
         if (e.target.closest('.assignment-checkbox')) {
             const assignment = assignments.find(a => a.id === id);
             if (assignment) {
-                assignment.isComplete = !assignment.isComplete; // Toggle status
-                assignment.completionDate = assignment.isComplete ? Date.now() : null; // Set/unset completion timestamp
+                assignment.isComplete = !assignment.isComplete;
+                assignment.completionDate = assignment.isComplete ? Date.now() : null; 
                 saveAllData();
-                renderCurrentView(); // Re-render to sort and update lists
+                renderCurrentView(); 
             }
             return;
         }
@@ -298,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIEW RENDERING FUNCTIONS ---
 
-    // 1. Render Checklist View
+    // 1. Render Checklist View (Unchanged logic, but createAssignmentCard is updated)
     function renderChecklist() {
         appContainer.innerHTML = '';
         const container = document.createElement('div');
@@ -312,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Render To-Do list
         if (todo.length > 0) {
             todo.forEach(assignment => {
                 container.appendChild(createAssignmentCard(assignment));
@@ -321,14 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = createEmptyState("All caught up!", "check_circle_outline");
         }
 
-        // Render "Recently Completed" list
         if (done.length > 0) {
             const divider = document.createElement('h2');
             divider.className = 'list-divider-header';
             divider.textContent = 'Recently Completed';
             container.appendChild(divider);
 
-            const recentlyDone = done.slice(0, 5); // Only show last 5
+            const recentlyDone = done.slice(0, 5);
             recentlyDone.forEach(assignment => {
                 container.appendChild(createAssignmentCard(assignment));
             });
@@ -337,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appContainer.appendChild(container);
     }
 
-    // 2. Render Subject View (Now only shows *incomplete* assignments)
+    // 2. Render Subject View
     function renderBySubject() {
         appContainer.innerHTML = '';
         const container = document.createElement('div');
@@ -350,22 +376,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // NEW: Group by subjectKey
         const grouped = incompleteAssignments.reduce((acc, assignment) => {
-            (acc[assignment.subject] = acc[assignment.subject] || []).push(assignment);
+            (acc[assignment.subjectKey] = acc[assignment.subjectKey] || []).push(assignment);
             return acc;
         }, {});
 
         const sortedSubjects = Object.keys(grouped).sort();
 
-        sortedSubjects.forEach(subject => {
-            const group = grouped[subject];
-            const subjectColor = group[0].color;
+        sortedSubjects.forEach(subjectKey => {
+            // NEW: Look up subject data
+            const subjectData = subjects[subjectKey] || { name: 'Unknown Subject', color: '#aaaaaa' };
+            const group = grouped[subjectKey];
 
             const groupContainer = document.createElement('div');
             groupContainer.className = 'subject-group';
-            groupContainer.style.setProperty('--subject-color', subjectColor);
+            groupContainer.style.setProperty('--subject-color', subjectData.color);
 
-            groupContainer.innerHTML = `<div class="subject-header"><h2>${subject}</h2></div>`;
+            groupContainer.innerHTML = `<div class="subject-header"><h2>${subjectData.name}</h2></div>`;
             
             const assignmentsContainer = document.createElement('div');
             assignmentsContainer.className = 'subject-assignments';
@@ -392,7 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCalendar(calendarDate, 'week');
     }
 
-    // (This function is large but mostly unchanged, just shows *incomplete* assignments)
     function renderCalendar(date, type) {
         appContainer.innerHTML = '';
         const container = document.createElement('div');
@@ -401,7 +428,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         const todayISO = getISOString(today);
 
-        // --- Calendar Header (Nav) ---
         const calendarHeader = document.createElement('div');
         calendarHeader.className = 'calendar-header';
         
@@ -420,7 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         container.appendChild(calendarHeader);
 
-        // --- Calendar Grid ---
         const calendarGrid = document.createElement('div');
         calendarGrid.className = 'calendar-grid';
         const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -440,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 1; i <= lastDay.getDate(); i++) {
                 days.push({ date: new Date(year, month, i), isOtherMonth: false });
             }
-        } else { // type === 'week'
+        } else { 
             for (let i = 0; i < 14; i++) {
                 const day = new Date(date);
                 day.setDate(date.getDate() + i);
@@ -454,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
             days = days.slice(0, 14);
         }
 
-        // Create day cells
         days.forEach(dayData => {
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-day';
@@ -470,14 +494,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const assignmentsList = document.createElement('div');
                 assignmentsList.className = 'calendar-assignments';
 
-                // Find *incomplete* assignments for this day
                 const dayAssignments = assignments.filter(a => a.date === dayISO && !a.isComplete);
                 dayAssignments.forEach(a => {
+                    // NEW: Look up subject data
+                    const subjectData = subjects[a.subjectKey] || { name: 'Unknown', color: '#aaaaaa' };
                     const assignEl = document.createElement('div');
                     assignEl.className = 'calendar-assignment';
-                    assignEl.style.setProperty('--subject-color', a.color);
+                    assignEl.style.setProperty('--subject-color', subjectData.color);
                     assignEl.textContent = a.name;
-                    assignEl.title = `${a.name} (${a.subject})`;
+                    assignEl.title = `${a.name} (${subjectData.name})`; // Use looked-up name
                     assignEl.dataset.id = a.id;
                     assignmentsList.appendChild(assignEl);
                 });
@@ -487,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         container.appendChild(calendarGrid);
-        appContainer.appendChild(container);
 
         document.getElementById('prev-btn').addEventListener('click', () => changeCalendarPeriod(-1, type));
         document.getElementById('next-btn').addEventListener('click', () => changeCalendarPeriod(1, type));
@@ -496,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function changeCalendarPeriod(direction, type) {
         if (type === 'month') {
             calendarDate.setMonth(calendarDate.getMonth() + direction);
-        } else { // type === 'week'
+        } else {
             calendarDate.setDate(calendarDate.getDate() + (direction * 14));
         }
         renderCurrentView();
@@ -526,13 +550,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- EVENT LISTENERS ---
     
-    // View Switcher
     viewButtons.list.addEventListener('click', () => setView('list'));
     viewButtons.subject.addEventListener('click', () => setView('subject'));
     viewButtons.month.addEventListener('click', () => setView('month'));
     viewButtons.week.addEventListener('click', () => setView('week'));
     
-    // Modals
     fab.addEventListener('click', () => openFormModal());
     closeFormModalBtn.addEventListener('click', closeFormModal);
     formModal.addEventListener('click', (e) => {
@@ -545,18 +567,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === settingsModal) closeSettingsModal();
     });
 
-    // Forms
     assignmentForm.addEventListener('submit', handleFormSubmit);
-    assignmentSubject.addEventListener('input', handleSubjectInput);
-    assignmentSubject.addEventListener('change', handleSubjectInput);
-    
     subjectForm.addEventListener('submit', handleSubjectFormSubmit);
+    bannerColorInput.addEventListener('input', handleBannerColorChange); // NEW
     
-    // Dynamic Clicks
     appContainer.addEventListener('click', (e) => {
-        handleCardClick(e); // Handles checkbox, edit, delete
+        handleCardClick(e);
         
-        // Handle clicks on calendar items
         const calendarItem = e.target.closest('.calendar-assignment');
         if (calendarItem) {
             const id = parseInt(calendarItem.dataset.id);
@@ -569,6 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleteBtn = e.target.closest('.action-btn.delete');
         if (deleteBtn) {
             deleteSubject(deleteBtn.dataset.subjectKey);
+New:
         }
     });
 

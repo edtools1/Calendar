@@ -32,6 +32,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: background-color 0.3s; /* Added transition */
 }
 
 header h1 {
@@ -60,6 +61,7 @@ header h1 {
     background-color: var(--primary-dark);
     border-radius: 8px;
     overflow: hidden;
+    transition: background-color 0.3s; /* Added transition */
 }
 
 .view-switcher button {
@@ -81,6 +83,7 @@ header h1 {
 .view-switcher button.active {
     background-color: var(--surface-color);
     color: var(--primary-color);
+    transition: color 0.3s; /* Added transition */
 }
 
 /* Main Content Area */
@@ -105,7 +108,7 @@ main {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 200;
-    transition: background-color 0.2s, transform 0.2s;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .fab:hover {
@@ -188,34 +191,26 @@ main {
 }
 
 .form-group input[type="text"],
-.form-group input[type="date"] {
+.form-group input[type="date"],
+.form-group select { /* <-- ADDED SELECT */
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
+    background-color: white;
 }
 
-.form-group-row {
-    display: flex;
-    gap: 1rem;
-}
-
-.form-group-row .form-group {
-    flex: 1;
-}
-
-.color-picker-group {
-    max-width: 80px;
-}
-
-.color-picker-group input[type="color"] {
-    width: 100%;
-    height: 48px;
-    padding: 0.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
+/* Style for the select dropdown arrow */
+.form-group select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.5em;
+    padding-right: 2.5rem; /* Make room for arrow */
 }
 
 .date-input-wrapper {
@@ -245,7 +240,7 @@ main {
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s;
 }
 
 .btn-submit:hover {
@@ -260,6 +255,7 @@ main {
     color: white;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 /* --- Settings Modal --- */
@@ -302,6 +298,15 @@ main {
 .subject-list-name {
     flex: 1;
     font-weight: 500;
+}
+
+.settings-color-picker { /* <-- NEW */
+    width: 100%;
+    height: 48px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
 }
 
 
@@ -457,6 +462,7 @@ main {
     cursor: pointer;
     font-size: 1.5rem;
     color: var(--primary-color);
+    transition: color 0.3s;
 }
 
 .calendar-grid {
