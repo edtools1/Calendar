@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>Assignment Tracker</h1>
+        <button id="settings-btn" class="header-icon-btn" aria-label="Settings">
+            <span class="material-icons-outlined">settings</span>
+        </button>
+        <nav class="view-switcher">
+            <button id="view-list" class="active">List</button>
+            <button id="view-subject">Subject</button>
+            <button id="view-month">Month</button>
+            <button id="view-week">2-Week</button>
+        </nav>
+    </header>
+
+    <main id="app-container">
+        </main>
+
+    <button class="fab" id="add-assignment-btn" aria-label="Add Assignment">+</button>
+
+    <div id="form-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="form-modal-title">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="form-modal-title">New Assignment</h2>
+                <button id="close-form-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+            </header>
+            
+            <form id="assignment-form">
+                <input type="hidden" id="assignment-id">
+                
+                <div class="form-group">
+                    <label for="assignment-name">Assignment Name</label>
+                    <input type="text" id="assignment-name" required>
+                </div>
+                
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="assignment-subject">Subject</label>
+                        <input type="text" id="assignment-subject" list="subject-list" required>
+                        <datalist id="subject-list"></datalist>
+                    </div>
+                    <div class="form-group color-picker-group">
+                        <label for="subject-color">Color</label>
+                        <input type="color" id="subject-color" value="#4a90e2">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="due-date">Due Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="due-date" required>
+                        <span class="material-icons-outlined calendar-icon">calendar_today</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Save Assignment</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="settings-modal-title">Manage Subjects</h2>
+                <button id="close-settings-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+            </header>
+            
+            <h3>Add/Edit Subject</h3>
+            <form id="subject-form" class="subject-form">
+                <input type="text" id="new-subject-name" placeholder="Subject Name" required>
+                <input type="color" id="new-subject-color" value="#56a3e2">
+                <button type="submit" class="btn-submit-compact">Add</button>
+            </form>
+
+            <hr class="modal-divider">
+
+            <h3>Current Subjects</h3>
+            <div id="subject-manager-list">
+                </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

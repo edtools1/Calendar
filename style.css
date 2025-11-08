@@ -1,0 +1,565 @@
+/* General Setup */
+:root {
+    --primary-color: #4a90e2;
+    --primary-dark: #357ABD;
+    --bg-color: #f4f7f6;
+    --surface-color: #ffffff;
+    --text-color: #333;
+    --text-light: #777;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Header and Navigation */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.header-icon-btn {
+    position: absolute;
+    top: 0.8rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+.header-icon-btn .material-icons-outlined {
+    font-size: 1.75rem;
+}
+
+.view-switcher {
+    display: flex;
+    justify-content: center;
+    background-color: var(--primary-dark);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.view-switcher button {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    background-color: transparent;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.view-switcher button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.view-switcher button.active {
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+}
+
+/* Main Content Area */
+main {
+    padding: 1rem;
+}
+
+/* Floating Action Button (FAB) */
+.fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 2rem;
+    line-height: 56px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 200;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.fab:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 500px;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+.modal-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-group-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-group-row .form-group {
+    flex: 1;
+}
+
+.color-picker-group {
+    max-width: 80px;
+}
+
+.color-picker-group input[type="color"] {
+    width: 100%;
+    height: 48px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.date-input-wrapper input[type="date"] {
+    padding-right: 2.5rem;
+}
+
+.date-input-wrapper .calendar-icon {
+    position: absolute;
+    right: 0.75rem;
+    color: var(--text-light);
+    pointer-events: none;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-submit-compact {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* --- Settings Modal --- */
+.subject-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.subject-form input[type="text"] {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+.subject-form input[type="color"] {
+    width: 50px;
+    height: 48px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+#subject-manager-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.subject-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.subject-list-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+.subject-list-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+
+/* --- View-Specific Styling --- */
+
+/* Shared: Compact Assignment Card */
+.assignment-card {
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.75rem; /* More compact */
+    display: flex;
+    align-items: center;
+    padding: 0.75rem; /* More compact */
+    border-left: 6px solid var(--subject-color, var(--primary-color));
+    transition: opacity 0.3s, background-color 0.3s;
+}
+
+.assignment-checkbox {
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.assignment-card-content {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+
+.assignment-card h3 {
+    font-size: 1rem; /* More compact */
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+}
+
+.assignment-card p {
+    font-size: 0.85rem; /* More compact */
+    color: var(--text-light);
+}
+
+.assignment-due-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    margin-right: 0.5rem;
+}
+
+.assignment-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 0.25rem;
+}
+.action-btn:hover {
+    color: var(--text-color);
+}
+.action-btn.delete:hover {
+    color: #e74c3c;
+}
+
+/* Completed State */
+.assignment-card.completed {
+    background-color: #f9f9f9;
+    opacity: 0.7;
+}
+.assignment-card.completed h3,
+.assignment-card.completed p {
+    text-decoration: line-through;
+    color: var(--text-light);
+}
+
+/* 1. Checklist View */
+.list-divider-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin: 1.5rem 0 0.75rem 0;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.view-container-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 2. Subject View */
+.view-container-subject {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.subject-group {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.subject-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    border-left: 6px solid var(--subject-color, var(--primary-color));
+}
+
+.subject-header h2 {
+    font-size: 1.2rem;
+}
+
+.subject-assignments {
+    padding: 1rem;
+}
+
+.subject-assignments .assignment-card {
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+    border-left: 6px solid var(--subject-color, var(--primary-color));
+}
+
+/* 3. & 4. Calendar Views (Month & 2-Week) */
+.view-container-calendar {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calendar-header h2 {
+    font-size: 1.25rem;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.calendar-nav {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-day-header {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-light);
+    padding-bottom: 0.5rem;
+}
+
+.calendar-day {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    min-height: 100px;
+    padding: 0.5rem;
+    overflow: hidden;
+    background-color: #fafafa;
+    transition: background-color 0.2s;
+}
+
+.calendar-day.other-month {
+    background-color: var(--bg-color);
+    color: #ccc;
+}
+
+.calendar-day.today {
+    background-color: #fffbef;
+}
+
+.day-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.calendar-assignments {
+    margin-top: 0.25rem;
+}
+
+.calendar-assignment {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    background-color: var(--subject-color, var(--primary-color));
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+}
+
+.empty-state .material-icons-outlined {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Media Query for larger screens (not strictly mobile) */
+@media (min-width: 768px) {
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+    }
+
+    header h1 {
+        margin-bottom: 0;
+        text-align: left;
+        flex: 1;
+    }
+    
+    .header-icon-btn {
+        position: static; /* Reset position */
+        order: 3; /* Move to the end */
+        margin-left: 1rem;
+    }
+
+    .view-switcher {
+        flex: 0 1 500px; /* Don't grow, basis 500px */
+        order: 2; /* Put in middle */
+    }
+
+    main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .fab {
+        bottom: 2rem;
+        right: 2rem;
+    }
+}
